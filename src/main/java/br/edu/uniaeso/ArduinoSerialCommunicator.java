@@ -84,13 +84,27 @@ public class ArduinoSerialCommunicator {
         try {
             byte[] writeByte = msg.getBytes();
             bytesTxed = commPort.writeBytes(writeByte, writeByte.length);
-            System.out.print(" Bytes Transmitted -> " + bytesTxed);
+            System.out.println(" Bytes Transmitted -> " + bytesTxed);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return bytesTxed;
     }
 
+    public String readMessage() {
+        StringBuilder message = new StringBuilder();
+        try {
+            byte[] readBuffer = new byte[1024];
+            int numRead = commPort.readBytes(readBuffer, readBuffer.length);
+            if (numRead > 0) {
+                message.append(new String(readBuffer, 0, numRead));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return message.toString();
+    }
+    
     public void getPortsInfo() {
         System.out.println("\n\n Available Ports");
         SerialPort[] ports = SerialPort.getCommPorts();

@@ -1,47 +1,70 @@
 package br.edu.uniaeso;
 
+import java.util.Scanner;
 import com.fazecast.jSerialComm.SerialPort;
 
 public class App {
 
     public static void main(String[] args) throws InterruptedException {
+        Scanner scanner = new Scanner(System.in);
+        // Configuração da comunicação serial
         ArduinoSerialCommunicator asc = new ArduinoSerialCommunicator(115200, 8, SerialPort.ONE_STOP_BIT,
                 SerialPort.NO_PARITY);
+
         System.out.println("\n\n SerialPort Data Transmission");
 
-        // use the for loop to print the available serial ports
+        // Exibição das portas seriais disponíveis
         asc.getPortsInfo();
+
         System.out.println("Closing ports");
+        // Fechamento de todas as portas seriais abertas
         asc.closeAllPorts();
 
-        // Open the first Available port
+        // Seleção da porta COM6 (pode ser alterada conforme necessário)
         SerialPort commPort = asc.getCOMMPortByName("COM6");
 
+        // Configuração dos parâmetros da porta serial
         asc.setSerialParameters();
 
-        commPort.openPort(2000); // open the port
-        // Arduino Will Reset
+        // Abertura da porta serial
+        commPort.openPort(2000);
+        
         System.out.println(" Watch Arduino for Reset ");
 
+        // Verificação se a porta serial está aberta
         if (!asc.verifyPortOpen()) {
             System.out.println(" Port not open ");
             System.exit(-1);
         }
 
+        // Exibição das informações da porta serial selecionada
         asc.showSelectedPortInfo();
 
-        Thread.sleep(2000); // Delay introduced because when the SerialPort is opened ,Arduino gets resetted
-                            // Time for the code in Arduino to rerun after Reset
+        // Aguardar um breve intervalo após a abertura da porta serial
+        Thread.sleep(2000); 
 
-        asc.writeMessage("on");
+        // Loop para solicitar comandos ao usuário até que seja digitado "/quit"
+        String comando;
+        do {
+            System.out.print("Digite o comando a ser enviado para o Arduino (ou '/quit' para sair): ");
+            comando = scanner.nextLine();
+            if (!comando.equals("/quit")) {
+                // Envio do comando para o dispositivo
+                asc.writeMessage(comando);
+                System.out.println(asc.readMessage());
+            }
+        } while (!comando.equals("/quit"));
 
-        
-        asc.closeCOMMPort(); // Close the port
+        // Fechamento da porta serial
+        asc.closeCOMMPort();
 
+        // Verificação adicional se a porta serial foi fechada corretamente
         if (!asc.verifyPortOpen()) {
             System.out.println(" Port not open ");
             System.exit(-1);
         }
-    }
 
+        // Fechamento do scanner
+        scanner.close();
+    }
 }
